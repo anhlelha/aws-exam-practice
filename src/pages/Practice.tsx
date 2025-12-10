@@ -1,3 +1,4 @@
+import API_BASE_URL from '../config/api';
 import { useEffect, useState, useCallback } from 'react';
 import Timer from '../components/Timer';
 import QuestionNav from '../components/QuestionNav';

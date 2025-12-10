@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:3001/api';
+import API_BASE_URL from '../config/api';
+const API_BASE = `${API_BASE_URL}/api`;
 
 export interface Answer {
     text: string;
@@ -20,85 +21,78 @@ export interface Category {
     color: string;
 }
 
-// Create new question
-export async function createQuestion(question: QuestionInput): Promise<{ questionId: number }> {
+export async function createQuestion(question: QuestionInput) {
     const response = await fetch(`${API_BASE}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(question)
+        body: JSON.stringify({
+            text: question.text,
+            answers: question.answers.map(a => ({ text: a.text, is_correct: a.isCorrect })),
+            explanation: question.explanation,
+            is_multiple_choice: question.isMultipleChoice,
+            category_id: question.categoryId,
+            tags: question.tags
+        })
     });
-    if (!response.ok) throw new Error((await response.json()).error);
+    if (!response.ok) throw new Error('Failed to create question');
     return response.json();
 }
 
-// Generate diagram with LLM
-export async function generateDiagram(questionId: number): Promise<{ diagramPath: string }> {
-    const response = await fetch(`${API_BASE}/questions/${questionId}/diagram/generate`, {
-        method: 'POST'
+export async function generateDiagram(questionText: string) {
+    const response = await fetch(`${API_BASE}/questions/generate-diagram`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question_text: questionText })
     });
-    if (!response.ok) throw new Error((await response.json()).error);
+    if (!response.ok) throw new Error('Failed to generate diagram');
     return response.json();
 }
 
-// Upload diagram file
-export async function uploadDiagram(questionId: number, file: File): Promise<{ diagramPath: string }> {
+export async function uploadDiagram(questionId: number, file: File) {
     const formData = new FormData();
     formData.append('diagram', file);
 
-    const response = await fetch(`${API_BASE}/questions/${questionId}/diagram/upload`, {
+    const response = await fetch(`${API_BASE}/questions/${questionId}/diagram`, {
         method: 'POST',
         body: formData
     });
-    if (!response.ok) throw new Error((await response.json()).error);
+    if (!response.ok) throw new Error('Failed to upload diagram');
     return response.json();
 }
 
-// Get single question by ID (for edit mode)
-export async function getQuestionById(questionId: number): Promise<{
-    id: number;
-    text: string;
-    explanation: string | null;
-    category_id: number | null;
-    is_multiple_choice: boolean;
-    diagram_path: string | null;
-    answers: { id: number; text: string; is_correct: boolean }[];
-    tags: { id: number; name: string }[];
-}> {
+export async function getCategories(): Promise<Category[]> {
+    const response = await fetch(`${API_BASE}/settings/certifications`);
+    if (!response.ok) throw new Error('Failed to fetch categories');
+    return response.json();
+}
+
+export async function getQuestionById(questionId: number) {
     const response = await fetch(`${API_BASE}/questions/${questionId}`);
-    if (!response.ok) throw new Error('Question not found');
+    if (!response.ok) throw new Error('Failed to fetch question');
     return response.json();
 }
 
-// Update existing question
-export async function updateQuestion(questionId: number, data: {
-    text: string;
-    answers: Answer[];
-    explanation?: string;
-    isMultipleChoice: boolean;
-    categoryId: number | null;
-    tags: string[];
-}): Promise<{ success: boolean }> {
+export async function updateQuestion(questionId: number, question: QuestionInput) {
     const response = await fetch(`${API_BASE}/questions/${questionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            text: question.text,
+            answers: question.answers.map(a => ({ text: a.text, is_correct: a.isCorrect })),
+            explanation: question.explanation,
+            is_multiple_choice: question.isMultipleChoice,
+            category_id: question.categoryId,
+            tags: question.tags
+        })
     });
-    if (!response.ok) throw new Error((await response.json()).error);
+    if (!response.ok) throw new Error('Failed to update question');
     return response.json();
 }
 
-// Delete question
-export async function deleteQuestion(questionId: number): Promise<{ success: boolean }> {
+export async function deleteQuestion(questionId: number) {
     const response = await fetch(`${API_BASE}/questions/${questionId}`, {
         method: 'DELETE'
     });
-    if (!response.ok) throw new Error((await response.json()).error);
-    return response.json();
-}
-
-// Fetch categories
-export async function getCategories(): Promise<Category[]> {
-    const response = await fetch(`${API_BASE}/categories`);
-    if (!response.ok) throw new Error('Failed to fetch categories');
+    if (!response.ok) throw new Error('Failed to delete question');
     return response.json();
 }

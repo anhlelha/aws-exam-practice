@@ -1,3 +1,4 @@
+import API_BASE_URL from '../config/api';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { createQuestion, getQuestionById, updateQuestion, deleteQuestion, uploadDiagram, getCategories, type Answer, type Category } from '../services/questionService';

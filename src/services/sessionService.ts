@@ -1,5 +1,6 @@
 // Session Service - API calls for practice sessions
-const API_BASE = 'http://localhost:3001/api';
+import API_BASE_URL from '../config/api';
+const API_BASE = `${API_BASE_URL}/api`;
 
 // Bắt đầu session mới
 export async function startSession(testId: number, mode: 'timed' | 'non-timed') {
