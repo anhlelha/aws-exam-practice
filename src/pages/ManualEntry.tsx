@@ -60,7 +60,7 @@ export default function ManualEntry() {
 
                     // Map answers
                     if (question.answers && question.answers.length > 0) {
-                        setAnswers(question.answers.map(a => ({
+                        setAnswers(question.answers.map((a: { text: string; is_correct: boolean }) => ({
                             text: a.text,
                             isCorrect: a.is_correct
                         })));
@@ -68,7 +68,7 @@ export default function ManualEntry() {
 
                     // Map tags
                     if (question.tags && question.tags.length > 0) {
-                        setTags(question.tags.map(t => t.name));
+                        setTags(question.tags.map((t: { name: string }) => t.name));
                     }
                 })
                 .catch(err => {
