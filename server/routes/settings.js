@@ -1,6 +1,6 @@
 import express from 'express';
 import { getDb } from '../db/schema.js';
-import { GoogleGenAI } from '@google/genai';
+// TEMPORARILY DISABLED for Railway deploy - see BACKLOG.md\n// import { GoogleGenAI } from '@google/genai';
 
 const router = express.Router();
 
@@ -152,18 +152,11 @@ async function testAnthropic(apiKey, model, message) {
     };
 }
 
+// TEMPORARILY DISABLED - Google AI
 async function testGoogle(apiKey, model, message) {
-    const client = new GoogleGenAI({ apiKey });
-
-    const response = await client.models.generateContent({
-        model: model || 'gemini-2.0-flash',
-        contents: message
-    });
-
     return {
-        success: true,
-        message: 'Connection successful!',
-        response: response.text || 'OK'
+        success: false,
+        message: 'Google AI temporarily disabled for deployment. See BACKLOG.md'
     };
 }
 

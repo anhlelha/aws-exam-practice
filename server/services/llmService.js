@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { GoogleGenAI } from '@google/genai';
+// TEMPORARILY DISABLED for Railway deploy - see BACKLOG.md
+// import { GoogleGenAI } from '@google/genai';
 import { getDb } from '../db/schema.js';
 
 // Get LLM config from database
@@ -19,10 +20,10 @@ function getAnthropicClient(apiKey) {
     return new Anthropic({ apiKey });
 }
 
-// Create Google GenAI client
-function getGoogleClient(apiKey) {
-    return new GoogleGenAI({ apiKey });
-}
+// TEMPORARILY DISABLED - Google GenAI client
+// function getGoogleClient(apiKey) {
+//     return new GoogleGenAI({ apiKey });
+// }
 
 // Call LLM based on provider
 async function callLLM(role, systemPrompt, userPrompt) {
@@ -59,8 +60,9 @@ async function callLLM(role, systemPrompt, userPrompt) {
         return response.content[0].text;
     }
 
+    // TEMPORARILY DISABLED - Google provider
     if (config.provider === 'google') {
-        return await callGoogleGemini(config, finalSystemPrompt, userPrompt);
+        throw new Error('Google AI temporarily disabled. Please use OpenAI, Anthropic, or OpenRouter.');
     }
 
     if (config.provider === 'openrouter') {
@@ -84,23 +86,17 @@ async function callLLM(role, systemPrompt, userPrompt) {
     throw new Error(`Unsupported provider: ${config.provider}`);
 }
 
-// Google Gemini API call using @google/genai SDK
-async function callGoogleGemini(config, systemPrompt, userPrompt) {
-    const client = getGoogleClient(config.api_key);
-
-    const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${userPrompt}` : userPrompt;
-
-    const response = await client.models.generateContent({
-        model: config.model || 'gemini-2.0-flash',
-        contents: fullPrompt,
-        config: {
-            maxOutputTokens: config.max_tokens || 4096,
-            temperature: config.temperature || 0.7
-        }
-    });
-
-    return response.text || '';
-}
+// TEMPORARILY DISABLED - Google Gemini API call
+// async function callGoogleGemini(config, systemPrompt, userPrompt) {
+//     const client = getGoogleClient(config.api_key);
+//     const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${userPrompt}` : userPrompt;
+//     const response = await client.models.generateContent({
+//         model: config.model || 'gemini-2.0-flash',
+//         contents: fullPrompt,
+//         config: { maxOutputTokens: config.max_tokens || 4096, temperature: config.temperature || 0.7 }
+//     });
+//     return response.text || '';
+// }
 
 // LLM1: Extract questions from PDF text
 export async function extractQuestionsWithLLM(pdfText) {
