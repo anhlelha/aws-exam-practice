@@ -65,7 +65,7 @@ export default function Practice() {
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch('http://localhost:3001/api/tests')
+        fetch(`${API_BASE_URL}/api/tests`)
             .then(res => res.json())
             .then(setTests)
             .catch(console.error);
@@ -311,11 +311,11 @@ export default function Practice() {
                                         position: 'relative',
                                         cursor: 'zoom-in'
                                     }}
-                                        onClick={() => setZoomedImage(`http://localhost:3001/diagrams/${reviewQuestion.diagram_path}`)}
+                                        onClick={() => setZoomedImage(`${API_BASE_URL}/diagrams/${reviewQuestion.diagram_path}`)}
                                     >
                                         <strong style={{ color: 'var(--color-primary)', display: 'block', marginBottom: '12px' }}>Architecture Diagram:</strong>
                                         <img
-                                            src={`http://localhost:3001/diagrams/${reviewQuestion.diagram_path}`}
+                                            src={`${API_BASE_URL}/diagrams/${reviewQuestion.diagram_path}`}
                                             alt="Architecture Diagram"
                                             style={{
                                                 maxWidth: '100%',
@@ -662,11 +662,11 @@ export default function Practice() {
                                             position: 'relative',
                                             cursor: 'zoom-in'
                                         }}
-                                        onClick={() => setZoomedImage(`http://localhost:3001/diagrams/${currentQuestion.diagram_path}`)}
+                                        onClick={() => setZoomedImage(`${API_BASE_URL}/diagrams/${currentQuestion.diagram_path}`)}
                                     >
                                         <strong style={{ color: 'var(--color-primary)', display: 'block', marginBottom: '12px' }}>Architecture Diagram:</strong>
                                         <img
-                                            src={`http://localhost:3001/diagrams/${currentQuestion.diagram_path}`}
+                                            src={`${API_BASE_URL}/diagrams/${currentQuestion.diagram_path}`}
                                             alt="Architecture Diagram"
                                             style={{
                                                 maxWidth: '100%',

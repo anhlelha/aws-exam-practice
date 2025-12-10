@@ -437,7 +437,7 @@ export default function ManualEntry() {
                                 <div className="diagram-placeholder">
                                     {diagramPath ? (
                                         <img
-                                            src={diagramPath.startsWith('blob:') ? diagramPath : `http://localhost:3001/diagrams/${diagramPath}`}
+                                            src={diagramPath.startsWith('blob:') ? diagramPath : `${API_BASE_URL}/diagrams/${diagramPath}`}
                                             alt="Diagram"
                                             style={{ maxWidth: '100%', maxHeight: '200px' }}
                                         />

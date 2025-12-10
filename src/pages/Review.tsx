@@ -624,14 +624,14 @@ export default function Review() {
                                     }}
                                         onClick={() => {
                                             if (selectedQuestion.diagram_path) {
-                                                setZoomedImage(`http://localhost:3001/diagrams/${selectedQuestion.diagram_path}`);
+                                                setZoomedImage(`${API_BASE_URL}/diagrams/${selectedQuestion.diagram_path}`);
                                             }
                                         }}
                                     >
                                         {selectedQuestion.diagram_path ? (
                                             <>
                                                 <img
-                                                    src={`http://localhost:3001/diagrams/${selectedQuestion.diagram_path}`}
+                                                    src={`${API_BASE_URL}/diagrams/${selectedQuestion.diagram_path}`}
                                                     alt="Architecture Diagram"
                                                     style={{
                                                         maxWidth: '100%',

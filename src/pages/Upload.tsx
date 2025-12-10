@@ -53,7 +53,7 @@ export default function Upload() {
                 setStatus(step);
             }
 
-            const response = await fetch('http://localhost:3001/api/upload', {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
                 method: 'POST',
                 body: formData,
             });

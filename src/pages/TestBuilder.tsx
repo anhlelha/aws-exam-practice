@@ -51,7 +51,7 @@ export default function TestBuilder() {
 
     useEffect(() => {
         // Load categories
-        fetch('http://localhost:3001/api/settings/certifications')
+        fetch(`${API_BASE_URL}/api/settings/certifications`)
             .then(res => res.json())
             .then(data => {
                 const allCategories = data.flatMap((cert: any) => cert.categories || []);

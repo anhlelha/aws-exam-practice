@@ -18,7 +18,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         // Fetch stats from API
-        fetch('http://localhost:3001/api/questions?limit=1')
+        fetch(`${API_BASE_URL}/api/questions?limit=1`)
             .then(res => res.json())
             .then(data => {
                 setStats(prev => ({

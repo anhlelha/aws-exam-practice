@@ -35,11 +35,11 @@ export default function Settings() {
     const [testResult, setTestResult] = useState<Record<string, TestResult | null>>({});
 
     useEffect(() => {
-        fetch('http://localhost:3001/api/settings/llm')
+        fetch(`${API_BASE_URL}/api/settings/llm`)
             .then(res => res.json())
             .then(setLlmConfigs);
 
-        fetch('http://localhost:3001/api/settings/certifications')
+        fetch(`${API_BASE_URL}/api/settings/certifications`)
             .then(res => res.json())
             .then(setCertifications);
     }, []);
@@ -47,7 +47,7 @@ export default function Settings() {
     const handleSaveLLM = async (config: LLMConfig) => {
         setSaving(config.role);
         try {
-            await fetch(`http://localhost:3001/api/settings/llm/${config.role}`, {
+            await fetch(`${API_BASE_URL}/api/settings/llm/${config.role}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
@@ -65,7 +65,7 @@ export default function Settings() {
         setTestResult(prev => ({ ...prev, [config.role]: null }));
 
         try {
-            const response = await fetch(`http://localhost:3001/api/settings/llm/${config.role}/test`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/llm/${config.role}/test`, {
                 method: 'POST'
             });
             const result = await response.json();
