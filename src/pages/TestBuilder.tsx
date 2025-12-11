@@ -331,8 +331,14 @@ export default function TestBuilder() {
                                                             </td>
                                                             <td>
                                                                 {q.category_name && (
-                                                                    <span className="tag" style={{ background: q.category_color || 'var(--color-primary)', color: 'white' }}>
-                                                                        {q.category_name}
+                                                                    <span className="tag" style={{
+                                                                        background: 'transparent',
+                                                                        border: `2px solid ${q.category_color || 'var(--color-primary)'}`,
+                                                                        color: q.category_color || 'var(--color-primary)',
+                                                                        fontSize: '12px',
+                                                                        padding: '4px 12px'
+                                                                    }}>
+                                                                        {q.category_name.replace('Design ', '').replace(' Architectures', '')}
                                                                     </span>
                                                                 )}
                                                             </td>
@@ -437,8 +443,14 @@ export default function TestBuilder() {
                                                 </td>
                                                 <td>
                                                     {q.category_name && (
-                                                        <span className="tag" style={{ fontSize: '11px', background: q.category_color || 'var(--bg-tertiary)' }}>
-                                                            {q.category_name}
+                                                        <span className="tag" style={{
+                                                            background: 'transparent',
+                                                            border: `2px solid ${q.category_color || 'var(--bg-tertiary)'}`,
+                                                            color: q.category_color || 'var(--text-primary)',
+                                                            fontSize: '11px',
+                                                            padding: '3px 10px'
+                                                        }}>
+                                                            {q.category_name.replace('Design ', '').replace(' Architectures', '')}
                                                         </span>
                                                     )}
                                                 </td>
