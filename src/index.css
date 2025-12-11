@@ -597,7 +597,13 @@ body {
 
 .answer-option.selected {
   border-color: var(--color-primary);
-  background: rgba(255, 153, 0, 0.1);
+  background: rgba(255, 153, 0, 0.15);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.answer-option.selected .answer-marker {
+  background: var(--color-primary);
+  color: #000;
 }
 
 .answer-marker {

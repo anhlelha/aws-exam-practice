@@ -282,11 +282,15 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'At least one answer must be marked as correct' });
         }
 
+        // Auto-detect question type: if more than 1 correct answer, set as multiple choice
+        const correctCount = answers.filter(a => a.isCorrect).length;
+        const finalIsMultiple = correctCount > 1 || isMultipleChoice;
+
         // Insert question
         const result = db.prepare(`
             INSERT INTO questions (text, explanation, is_multiple_choice, category_id, source_file)
             VALUES (?, ?, ?, ?, 'manual_entry')
-        `).run(text, explanation || null, isMultipleChoice ? 1 : 0, categoryId || null);
+        `).run(text, explanation || null, finalIsMultiple ? 1 : 0, categoryId || null);
 
         const questionId = result.lastInsertRowid;
 
@@ -596,11 +600,20 @@ router.put('/:id', (req, res) => {
         // Support both naming conventions (category_id and categoryId)
         const catId = category_id ?? categoryId ?? null;
 
+        // Auto-detect question type: if more than 1 correct answer, set as multiple choice
+        let finalIsMultiple = isMultipleChoice;
+        if (answers && Array.isArray(answers)) {
+            const correctCount = answers.filter(a => (a.is_correct ?? a.isCorrect ?? false)).length;
+            if (correctCount > 1) {
+                finalIsMultiple = true;
+            }
+        }
+
         db.prepare(`
       UPDATE questions 
       SET text = ?, explanation = ?, category_id = ?, is_multiple_choice = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(text, explanation || null, catId, isMultipleChoice ? 1 : 0, req.params.id);
+    `).run(text, explanation || null, catId, finalIsMultiple ? 1 : 0, req.params.id);
 
         // Update answers
         if (answers) {

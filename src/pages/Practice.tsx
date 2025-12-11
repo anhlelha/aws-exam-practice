@@ -180,7 +180,7 @@ export default function Practice() {
 
         let newSelected: number[];
 
-        if (question.is_multiple_choice) {
+        if (Number(question.is_multiple_choice) === 1) {
             const currentSelected = state.selectedAnswers[question.id] || [];
             if (currentSelected.includes(answerId)) {
                 // Deselect
@@ -610,11 +610,11 @@ export default function Practice() {
                             <div className="question-header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <span style={{ fontWeight: 600 }}>Question {state.currentIndex + 1}</span>
-                                    {currentQuestion.is_multiple_choice ? (
+                                    {Number(currentQuestion.is_multiple_choice) === 1 && (
                                         <span className="tag info" style={{ fontSize: '13px' }}>
                                             Multiple Choice (Select {currentQuestion.answers.filter(a => a.is_correct).length})
                                         </span>
-                                    ) : null}
+                                    )}
                                 </div>
                                 <button
                                     className={`btn ${state.flagged.includes(state.currentIndex) ? 'btn-warning' : 'btn-ghost'}`}

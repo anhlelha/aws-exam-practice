@@ -55,16 +55,22 @@ export default function ManualEntry() {
                     setQuestionText(question.text);
                     setExplanation(question.explanation || '');
                     setCategoryId(question.category_id);
-                    setIsMultipleChoice(Boolean(question.is_multiple_choice));
                     setDiagramPath(question.diagram_path);
 
                     // Map answers
+                    let mappedAnswers: Answer[] = [];
                     if (question.answers && question.answers.length > 0) {
-                        setAnswers(question.answers.map((a: { text: string; is_correct: boolean }) => ({
+                        mappedAnswers = question.answers.map((a: { text: string; is_correct: boolean }) => ({
                             text: a.text,
                             isCorrect: a.is_correct
-                        })));
+                        }));
+                        setAnswers(mappedAnswers);
                     }
+
+                    // Auto-detect question type: if more than 1 correct answer, treat as multiple choice
+                    const correctCount = mappedAnswers.filter(a => a.isCorrect).length;
+                    const shouldBeMultiple = correctCount > 1 || Boolean(question.is_multiple_choice);
+                    setIsMultipleChoice(shouldBeMultiple);
 
                     // Map tags
                     if (question.tags && question.tags.length > 0) {
