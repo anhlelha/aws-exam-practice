@@ -230,7 +230,7 @@ export default function TestBuilder() {
                         {/* Left Sidebar: My Tests */}
                         <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                             <div className="card-header" style={{ flexShrink: 0 }}>
-                                <h3 className="card-title">📚 My Tests</h3>
+                                <h3 className="card-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>My Tests</h3>
                                 <span className="tag info">{existingTests.length}</span>
                             </div>
                             <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
@@ -254,8 +254,8 @@ export default function TestBuilder() {
                                         >
                                             <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '6px' }}>{test.name}</div>
                                             <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                                <span>📝 {test.question_count} Qs</span>
-                                                <span>⏱️ {test.duration_minutes} min</span>
+                                                <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', verticalAlign: 'middle' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>{test.question_count} Qs</span>
+                                                <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', verticalAlign: 'middle' }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>{test.duration_minutes} min</span>
                                             </div>
                                         </div>
                                     ))
@@ -263,7 +263,7 @@ export default function TestBuilder() {
                             </div>
                             <div style={{ padding: '12px', borderTop: '1px solid var(--border-color)' }}>
                                 <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleCreateNew}>
-                                    ➕ Create New Test
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Create New Test
                                 </button>
                             </div>
                         </div>
@@ -276,19 +276,19 @@ export default function TestBuilder() {
                                         <div>
                                             <h3 className="card-title">{selectedTest.name}</h3>
                                             <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                                                <span>📝 <strong>{testQuestions.length}</strong> Questions</span>
-                                                <span>⏱️ <strong>{selectedTest.duration_minutes}</strong> minutes</span>
+                                                <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', verticalAlign: 'middle' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg><strong>{testQuestions.length}</strong> Questions</span>
+                                                <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', verticalAlign: 'middle' }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg><strong>{selectedTest.duration_minutes}</strong> minutes</span>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             <button className="btn btn-primary" onClick={() => navigate(`/practice?test=${selectedTest.id}`)}>
-                                                🎯 Start Practice
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>Start Practice
                                             </button>
                                             <button className="btn btn-secondary" onClick={() => handleEditTest(selectedTest)}>
-                                                ✏️ Edit
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>Edit
                                             </button>
                                             <button className="btn btn-danger" onClick={() => handleDeleteTest(selectedTest.id)}>
-                                                🗑️
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                                             </button>
                                         </div>
                                     </div>
@@ -331,7 +331,7 @@ export default function TestBuilder() {
                                         <h3>No Tests Yet</h3>
                                         <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Create your first practice test!</p>
                                         <button className="btn btn-primary btn-lg" onClick={handleCreateNew}>
-                                            ➕ Create New Test
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Create New Test
                                         </button>
                                     </div>
                                 </div>
@@ -346,7 +346,7 @@ export default function TestBuilder() {
                         {/* Left: Question Browser */}
                         <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                             <div className="card-header" style={{ flexShrink: 0 }}>
-                                <h3 className="card-title">📚 Available Questions</h3>
+                                <h3 className="card-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>Available Questions</h3>
                                 <span className="tag info">{availableQuestions.length}</span>
                             </div>
 
@@ -414,7 +414,7 @@ export default function TestBuilder() {
                                                 </td>
                                                 <td><span className="question-badge" style={{ fontSize: '12px' }}>{q.id}</span></td>
                                                 <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {selectedQuestionIds.includes(q.id) && <span style={{ color: 'var(--color-success)', marginRight: '6px' }}>✓</span>}
+                                                    {selectedQuestionIds.includes(q.id) && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="3" style={{ marginRight: '6px', verticalAlign: 'middle' }}><polyline points="20 6 9 17 4 12" /></svg>}
                                                     {q.text}
                                                 </td>
                                                 <td>
@@ -440,7 +440,7 @@ export default function TestBuilder() {
                                     onClick={handleAddSelected}
                                     disabled={checkedIds.size === 0}
                                 >
-                                    ➕ Add Selected ({checkedIds.size})
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Add Selected ({checkedIds.size})
                                 </button>
                             </div>
                         </div>
@@ -448,7 +448,7 @@ export default function TestBuilder() {
                         {/* Right: Test Configuration */}
                         <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                             <div className="card-header" style={{ flexShrink: 0 }}>
-                                <h3 className="card-title">⚙️ Test Configuration</h3>
+                                <h3 className="card-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>Test Configuration</h3>
                                 <span className="tag warning">{viewMode === 'edit' ? 'Edit Mode' : 'New Test'}</span>
                             </div>
 
@@ -513,7 +513,7 @@ export default function TestBuilder() {
                                                             onClick={() => handleRemoveQuestion(qId)}
                                                             style={{ color: 'var(--color-danger)', padding: '4px' }}
                                                         >
-                                                            ✕
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                                         </button>
                                                     </div>
                                                 );
@@ -534,7 +534,7 @@ export default function TestBuilder() {
                                     onClick={handleSave}
                                     disabled={loading || !testName.trim() || selectedQuestionIds.length === 0}
                                 >
-                                    {loading ? 'Saving...' : viewMode === 'edit' ? '💾 Save Changes' : '✓ Create Test'}
+                                    {loading ? 'Saving...' : viewMode === 'edit' ? <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>Save Changes</> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: '6px', verticalAlign: 'middle' }}><polyline points="20 6 9 17 4 12" /></svg>Create Test</>}
                                 </button>
                             </div>
                         </div>
