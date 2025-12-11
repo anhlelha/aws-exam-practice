@@ -55,7 +55,7 @@ export default function ManualEntry() {
                     setQuestionText(question.text);
                     setExplanation(question.explanation || '');
                     setCategoryId(question.category_id);
-                    setIsMultipleChoice(question.is_multiple_choice || false);
+                    setIsMultipleChoice(Boolean(question.is_multiple_choice));
                     setDiagramPath(question.diagram_path);
 
                     // Map answers
