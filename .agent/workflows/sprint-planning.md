@@ -17,7 +17,28 @@ Create a file at project root: `SPRINT{N}_{NAME}.md` with:
 - High-level task breakdown
 - Dependencies between tasks
 
-### Step 3: Create Agent Task Files
+### Step 3: Create/Update Mockups (REQUIRED FIRST)
+
+**⚠️ CRITICAL: Mockups must be approved BEFORE any implementation work!**
+
+1. **Open the main mockup file:** `mockups/index.html`
+2. **Add new section(s)** for the sprint features - DO NOT create separate mockup files
+3. **Include all UI elements** that will be built
+4. **Request user review** of the mockup section
+5. **Wait for approval** before proceeding to agent tasks
+
+**Mockup file location:** `mockups/index.html` (single source of truth)
+
+**Format for new sections:**
+```html
+<!-- ========== SPRINT {N}: {Feature Name} ========== -->
+<section class="mockup-section" id="sprint-{n}-feature">
+  <h2>Feature Name</h2>
+  <!-- Mockup content here -->
+</section>
+```
+
+### Step 4: Create Agent Task Files
 
 Split work into 3-4 independent agents. For each agent, create a separate file:
 
@@ -28,7 +49,7 @@ SPRINT{N}_AGENT3_TESTING.md    - E2E testing (runs LAST)
 SPRINT{N}_AGENT4_{OTHER}.md    - Optional: Database, DevOps, etc.
 ```
 
-### Step 4: Agent Task File Format
+### Step 5: Agent Task File Format
 
 Each agent file should contain:
 
@@ -51,7 +72,7 @@ Each agent file should contain:
 - What to do when complete (mark file as done, notify user, etc.)
 ```
 
-### Step 5: Testing Agent (ALWAYS LAST)
+### Step 6: Testing Agent (ALWAYS LAST)
 
 Agent 3 (Testing) should:
 1. Wait for all other agents to complete
@@ -59,7 +80,7 @@ Agent 3 (Testing) should:
 3. Document test results in a test report file
 4. Flag any issues found for other agents to fix
 
-### Step 6: Context Files
+### Step 7: Context Files
 
 Before planning, read these files:
 - `API_REFERENCE.md` - Current API structure
@@ -78,8 +99,10 @@ aws-exam-app/
 
 ### Key Rules
 
-1. **Independence:** Each agent should be able to work in parallel
-2. **Clear boundaries:** No overlapping responsibilities
-3. **Testing last:** Testing agent waits for implementation agents
-4. **Specific tasks:** Each task should be actionable and verifiable
-5. **Check context:** Always read API_REFERENCE.md and DEVELOPMENT_GOTCHAS.md first
+1. **Mockup first:** Create/update `mockups/index.html` and get approval BEFORE implementation
+2. **Independence:** Each agent should be able to work in parallel
+3. **Clear boundaries:** No overlapping responsibilities
+4. **Testing last:** Testing agent waits for implementation agents
+5. **Specific tasks:** Each task should be actionable and verifiable
+6. **Check context:** Always read API_REFERENCE.md and DEVELOPMENT_GOTCHAS.md first
+7. **Single mockup file:** All mockups go in `mockups/index.html` - NO separate files
