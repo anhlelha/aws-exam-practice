@@ -284,7 +284,12 @@ export default function ManualEntry() {
                                         <select
                                             className="form-input form-select"
                                             value={isMultipleChoice ? 'multiple' : 'single'}
-                                            onChange={e => setIsMultipleChoice(e.target.value === 'multiple')}
+                                            onChange={(e) => {
+                                                const newType = e.target.value === 'multiple';
+                                                setIsMultipleChoice(newType);
+                                                // Reset selections when type changes
+                                                setAnswers(answers.map(a => ({ ...a, isCorrect: false })));
+                                            }}
                                         >
                                             <option value="single">Single Choice</option>
                                             <option value="multiple">Multiple Choice</option>

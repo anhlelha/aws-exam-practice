@@ -186,6 +186,13 @@ export default function Practice() {
                 // Deselect
                 newSelected = currentSelected.filter(id => id !== answerId);
             } else {
+                // Strict Limit Check: Do not allow selecting more than N
+                const correctCount = question.answers.filter(a => a.is_correct).length;
+                if (currentSelected.length >= correctCount) {
+                    // Start of shaky animation or toast could go here
+                    // For now, just ignore the click
+                    return;
+                }
                 // Select
                 newSelected = [...currentSelected, answerId];
             }
@@ -600,9 +607,14 @@ export default function Practice() {
                     {/* Left: Question */}
                     <div style={{ padding: '24px', overflow: 'auto' }}>
                         <div className="question-card">
-                            <div className="question-header">
+                            <div className="question-header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <span style={{ fontWeight: 600 }}>Question {state.currentIndex + 1}</span>
+                                    {currentQuestion.is_multiple_choice ? (
+                                        <span className="tag info" style={{ fontSize: '13px' }}>
+                                            Multiple Choice (Select {currentQuestion.answers.filter(a => a.is_correct).length})
+                                        </span>
+                                    ) : null}
                                 </div>
                                 <button
                                     className={`btn ${state.flagged.includes(state.currentIndex) ? 'btn-warning' : 'btn-ghost'}`}
@@ -611,8 +623,7 @@ export default function Practice() {
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
                                         <line x1="4" y1="22" x2="4" y2="15" />
-                                    </svg>
-                                    {state.flagged.includes(state.currentIndex) ? 'Flagged' : 'Flag'}
+                                    </svg> {state.flagged.includes(state.currentIndex) ? 'Flagged' : 'Flag'}
                                 </button>
                             </div>
                             <div className="question-body">
