@@ -52,7 +52,7 @@ export async function uploadDiagram(questionId: number, file: File) {
     const formData = new FormData();
     formData.append('diagram', file);
 
-    const response = await fetch(`${API_BASE}/questions/${questionId}/diagram`, {
+    const response = await fetch(`${API_BASE}/questions/${questionId}/diagram/upload`, {
         method: 'POST',
         body: formData
     });
