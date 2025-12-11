@@ -1005,3 +1005,56 @@ body {
     padding: 32px 24px;
   }
 }
+
+/* ==================== Test Selection List ==================== */
+.test-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Custom scrollbar for test list */
+.test-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.test-list::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.test-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.test-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+.test-item {
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-item:hover {
+  border-color: var(--color-primary);
+  background: rgba(255, 153, 0, 0.05);
+}
+
+.test-item.selected {
+  border-color: var(--color-primary);
+  background: rgba(255, 153, 0, 0.12);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.test-item.selected strong {
+  color: var(--color-primary);
+}
