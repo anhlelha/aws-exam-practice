@@ -11,7 +11,8 @@ const router = express.Router();
 // Multer setup for diagram uploads
 const diagramStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const dir = 'uploads/diagrams/';
+        // Use path relative to this file's location to ensure correct path on all environments
+        const dir = path.join(__dirname, '../../uploads/diagrams/');
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
