@@ -631,7 +631,16 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     try {
         const db = getDb();
-        db.prepare(`DELETE FROM questions WHERE id = ?`).run(req.params.id);
+        const questionId = req.params.id;
+
+        // Delete related records first (manual cascade)
+        db.prepare(`DELETE FROM answers WHERE question_id = ?`).run(questionId);
+        db.prepare(`DELETE FROM question_tags WHERE question_id = ?`).run(questionId);
+        db.prepare(`DELETE FROM session_answers WHERE question_id = ?`).run(questionId);
+        db.prepare(`DELETE FROM test_questions WHERE question_id = ?`).run(questionId);
+
+        // Now delete the question
+        db.prepare(`DELETE FROM questions WHERE id = ?`).run(questionId);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
