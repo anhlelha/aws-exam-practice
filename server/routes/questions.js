@@ -2,9 +2,14 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { getDb } from '../db/schema.js';
 import { classifyQuestionWithLLM, tagQuestionWithLLM } from '../services/llmService.js';
 import { generateDiagram } from '../services/diagramGenerator.js';
+
+// ES Modules __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
