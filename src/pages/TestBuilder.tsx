@@ -188,14 +188,32 @@ export default function TestBuilder() {
                 question_ids: selectedQuestionIds
             };
 
+            let savedTestId: number | null = null;
+
             if (viewMode === 'edit' && editingTestId) {
                 await updateTest(editingTestId, data);
+                savedTestId = editingTestId;
             } else {
-                await createTestWithQuestions(data);
+                const result = await createTestWithQuestions(data);
+                savedTestId = result.id;
+            }
+
+            // Reload tests list
+            const tests = await getTests();
+            setExistingTests(tests);
+
+            // Find and select the saved test to show updated data
+            if (savedTestId) {
+                const savedTest = tests.find((t: Test) => t.id === savedTestId);
+                if (savedTest) {
+                    setSelectedTest(savedTest);
+                    // Reload test questions
+                    const testData = await getTestQuestions(savedTestId);
+                    setTestQuestions(testData.questions || []);
+                }
             }
 
             setViewMode('list');
-            await loadExistingTests();
         } catch (error) {
             console.error('Save error:', error);
             alert('Failed to save test');
