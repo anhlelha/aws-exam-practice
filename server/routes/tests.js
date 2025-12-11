@@ -293,9 +293,20 @@ router.delete('/:id', (req, res) => {
             return res.status(404).json({ error: 'Test not found' });
         }
 
-        // Delete test questions first
+        // Delete related records first (manual cascade)
+        // 1. Delete session_answers for sessions linked to this test
+        db.prepare(`
+            DELETE FROM session_answers 
+            WHERE session_id IN (SELECT id FROM practice_sessions WHERE test_id = ?)
+        `).run(testId);
+
+        // 2. Delete practice_sessions linked to this test
+        db.prepare(`DELETE FROM practice_sessions WHERE test_id = ?`).run(testId);
+
+        // 3. Delete test_questions
         db.prepare(`DELETE FROM test_questions WHERE test_id = ?`).run(testId);
-        // Delete the test
+
+        // 4. Delete the test
         db.prepare(`DELETE FROM tests WHERE id = ?`).run(testId);
 
         res.json({ success: true, message: 'Test deleted successfully' });
