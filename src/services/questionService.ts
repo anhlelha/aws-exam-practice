@@ -61,7 +61,7 @@ export async function uploadDiagram(questionId: number, file: File) {
 }
 
 export async function getCategories(): Promise<Category[]> {
-    const response = await fetch(`${API_BASE}/settings/certifications`);
+    const response = await fetch(`${API_BASE}/questions/categories`);
     if (!response.ok) throw new Error('Failed to fetch categories');
     return response.json();
 }
