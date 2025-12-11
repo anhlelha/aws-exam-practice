@@ -252,7 +252,19 @@ router.post('/bulk-classify', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const db = getDb();
-        const { text, answers, explanation, isMultipleChoice, categoryId, tags } = req.body;
+        // Accept both camelCase and snake_case formats
+        const text = req.body.text;
+        const rawAnswers = req.body.answers || [];
+        const explanation = req.body.explanation;
+        const isMultipleChoice = req.body.isMultipleChoice ?? req.body.is_multiple_choice ?? false;
+        const categoryId = req.body.categoryId ?? req.body.category_id ?? null;
+        const tags = req.body.tags || [];
+
+        // Normalize answers to handle both is_correct and isCorrect
+        const answers = rawAnswers.map(a => ({
+            text: a.text,
+            isCorrect: a.isCorrect ?? a.is_correct ?? false
+        }));
 
         // Validation
         if (!text || !answers || answers.length < 2) {
