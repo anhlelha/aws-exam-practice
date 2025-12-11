@@ -23,7 +23,7 @@ echo -e "${GREEN}========================================${NC}"
 # =============================================================================
 REPO_URL="https://github.com/anhlelha/aws-exam-practice.git"
 APP_DIR="/home/ec2-user/aws-exam-practice"
-NODE_VERSION="18"
+NODE_VERSION="20"
 BACKEND_PORT="3001"
 
 # Detect OS
@@ -39,7 +39,7 @@ echo -e "${YELLOW}Detected OS: $OS${NC}"
 # =============================================================================
 # Step 1: Update System
 # =============================================================================
-echo -e "\n${GREEN}[1/8] Updating system packages...${NC}"
+echo -e "\n${GREEN}[1/9] Updating system packages...${NC}"
 
 if [ "$OS" == "amzn" ] || [ "$OS" == "rhel" ] || [ "$OS" == "centos" ]; then
     sudo yum update -y
@@ -55,7 +55,7 @@ fi
 # =============================================================================
 # Step 2: Install Node.js
 # =============================================================================
-echo -e "\n${GREEN}[2/8] Installing Node.js ${NODE_VERSION}...${NC}"
+echo -e "\n${GREEN}[2/9] Installing Node.js ${NODE_VERSION}...${NC}"
 
 if [ "$PKG_MANAGER" == "yum" ]; then
     curl -fsSL https://rpm.nodesource.com/setup_${NODE_VERSION}.x | sudo bash -
@@ -69,9 +69,20 @@ echo -e "Node.js version: $(node -v)"
 echo -e "npm version: $(npm -v)"
 
 # =============================================================================
-# Step 3: Install Nginx and Git
+# Step 3: Install Build Tools (for native modules like better-sqlite3)
 # =============================================================================
-echo -e "\n${GREEN}[3/8] Installing Nginx and Git...${NC}"
+echo -e "\n${GREEN}[3/9] Installing build tools...${NC}"
+
+if [ "$PKG_MANAGER" == "yum" ]; then
+    sudo dnf groupinstall -y "Development Tools"
+else
+    sudo apt install -y build-essential
+fi
+
+# =============================================================================
+# Step 4: Install Nginx and Git
+# =============================================================================
+echo -e "\n${GREEN}[4/9] Installing Nginx and Git...${NC}"
 
 if [ "$PKG_MANAGER" == "yum" ]; then
     sudo yum install -y nginx git
@@ -80,15 +91,15 @@ else
 fi
 
 # =============================================================================
-# Step 4: Install PM2
+# Step 5: Install PM2
 # =============================================================================
-echo -e "\n${GREEN}[4/8] Installing PM2 process manager...${NC}"
+echo -e "\n${GREEN}[5/9] Installing PM2 process manager...${NC}"
 sudo npm install -g pm2
 
 # =============================================================================
-# Step 5: Clone Repository
+# Step 6: Clone Repository
 # =============================================================================
-echo -e "\n${GREEN}[5/8] Cloning repository...${NC}"
+echo -e "\n${GREEN}[6/9] Cloning repository...${NC}"
 
 # Change to home directory based on OS
 if [ "$OS" == "ubuntu" ]; then
@@ -107,17 +118,17 @@ else
 fi
 
 # =============================================================================
-# Step 6: Build Frontend
+# Step 7: Build Frontend
 # =============================================================================
-echo -e "\n${GREEN}[6/8] Building frontend...${NC}"
+echo -e "\n${GREEN}[7/9] Building frontend...${NC}"
 
 npm install
 npm run build
 
 # =============================================================================
-# Step 7: Setup Backend
+# Step 8: Setup Backend
 # =============================================================================
-echo -e "\n${GREEN}[7/8] Setting up backend...${NC}"
+echo -e "\n${GREEN}[8/9] Setting up backend...${NC}"
 
 cd server
 npm install
@@ -138,9 +149,9 @@ else
 fi
 
 # =============================================================================
-# Step 8: Configure Nginx
+# Step 9: Configure Nginx
 # =============================================================================
-echo -e "\n${GREEN}[8/8] Configuring Nginx...${NC}"
+echo -e "\n${GREEN}[9/9] Configuring Nginx...${NC}"
 
 # Determine the correct user for app directory
 if [ "$OS" == "ubuntu" ]; then
