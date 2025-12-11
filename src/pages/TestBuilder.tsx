@@ -1,8 +1,16 @@
-import API_BASE_URL from '../config/api';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { previewQuestions, createTestWithSelection, getTests, getTestQuestions, deleteTest } from '../services/testBuilderService';
-import type { PreviewResult } from '../services/testBuilderService';
+import { useNavigate } from 'react-router-dom'
+import {
+    getTests,
+    getTestQuestions,
+    deleteTest,
+    getTestForEdit,
+    createTestWithQuestions,
+    updateTest,
+    getQuestionsForSelection,
+    getCategories,
+    type QuestionSummary
+} from '../services/testBuilderService';
 
 interface Category {
     id: number;
@@ -25,6 +33,8 @@ interface TestQuestion {
     category_color?: string;
 }
 
+type ViewMode = 'list' | 'create' | 'edit';
+
 export default function TestBuilder() {
     const navigate = useNavigate();
 
@@ -35,38 +45,38 @@ export default function TestBuilder() {
     const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingQuestions, setLoadingQuestions] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-    // View mode: 'list' (show selected test) or 'create' (show create form)
-    const [viewMode, setViewMode] = useState<'list' | 'create' | 'preview'>('list');
-    const [preview, setPreview] = useState<PreviewResult | null>(null);
+    // Edit/Create form state
+    const [editingTestId, setEditingTestId] = useState<number | null>(null);
+    const [testName, setTestName] = useState('');
+    const [duration, setDuration] = useState(60);
+    const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
 
-    // Create form state
-    const [config, setConfig] = useState({
-        name: '',
-        duration_minutes: 60,
-        count: 10,
-        selection_mode: 'random' as const,
-        category_ids: [] as number[]
-    });
+    // Question browser state
+    const [availableQuestions, setAvailableQuestions] = useState<QuestionSummary[]>([]);
+    const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterCategoryId, setFilterCategoryId] = useState<number | ''>('');
 
     useEffect(() => {
-        // Load categories
-        fetch(`${API_BASE_URL}/api/settings/certifications`)
-            .then(res => res.json())
-            .then(data => {
-                const allCategories = data.flatMap((cert: any) => cert.categories || []);
-                setCategories(allCategories);
-            });
-
-        // Load existing tests
+        loadCategories();
         loadExistingTests();
     }, []);
+
+    const loadCategories = async () => {
+        try {
+            const cats = await getCategories();
+            setCategories(cats);
+        } catch (error) {
+            console.error('Failed to load categories:', error);
+        }
+    };
 
     const loadExistingTests = async () => {
         try {
             const tests = await getTests();
             setExistingTests(tests);
-            // Auto-select first test if available
             if (tests.length > 0 && !selectedTest) {
                 handleSelectTest(tests[0]);
             }
@@ -74,6 +84,25 @@ export default function TestBuilder() {
             console.error('Failed to load tests:', error);
         }
     };
+
+    const loadAvailableQuestions = async () => {
+        try {
+            const result = await getQuestionsForSelection({
+                category_id: filterCategoryId || undefined,
+                search: searchQuery || undefined,
+                limit: 100
+            });
+            setAvailableQuestions(result.questions);
+        } catch (error) {
+            console.error('Failed to load questions:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (viewMode === 'create' || viewMode === 'edit') {
+            loadAvailableQuestions();
+        }
+    }, [viewMode, filterCategoryId, searchQuery]);
 
     const handleSelectTest = async (test: Test) => {
         setSelectedTest(test);
@@ -103,44 +132,80 @@ export default function TestBuilder() {
 
     const handleCreateNew = () => {
         setViewMode('create');
-        setConfig({ name: '', duration_minutes: 60, count: 10, selection_mode: 'random', category_ids: [] });
+        setEditingTestId(null);
+        setTestName('');
+        setDuration(60);
+        setSelectedQuestionIds([]);
+        setCheckedIds(new Set());
     };
 
-    const handlePreview = async () => {
-        if (!config.name.trim()) {
+    const handleEditTest = async (test: Test) => {
+        setViewMode('edit');
+        setEditingTestId(test.id);
+        setTestName(test.name);
+        setDuration(test.duration_minutes);
+        try {
+            const testData = await getTestForEdit(test.id);
+            setSelectedQuestionIds(testData.question_ids);
+        } catch (error) {
+            console.error('Failed to load test for edit:', error);
+        }
+    };
+
+    const handleCheckQuestion = (questionId: number, checked: boolean) => {
+        setCheckedIds(prev => {
+            const next = new Set(prev);
+            if (checked) next.add(questionId);
+            else next.delete(questionId);
+            return next;
+        });
+    };
+
+    const handleAddSelected = () => {
+        setSelectedQuestionIds(prev => [...new Set([...prev, ...checkedIds])]);
+        setCheckedIds(new Set());
+    };
+
+    const handleRemoveQuestion = (questionId: number) => {
+        setSelectedQuestionIds(prev => prev.filter(id => id !== questionId));
+    };
+
+    const handleSave = async () => {
+        if (!testName.trim()) {
             alert('Please enter a test name');
             return;
         }
+        if (selectedQuestionIds.length === 0) {
+            alert('Please select at least one question');
+            return;
+        }
+
         setLoading(true);
         try {
-            const result = await previewQuestions({
-                count: config.count,
-                selection_mode: config.selection_mode,
-                category_ids: config.category_ids.length > 0 ? config.category_ids : undefined
-            });
-            setPreview(result);
-            setViewMode('preview');
+            const data = {
+                name: testName,
+                duration_minutes: duration,
+                question_ids: selectedQuestionIds
+            };
+
+            if (viewMode === 'edit' && editingTestId) {
+                await updateTest(editingTestId, data);
+            } else {
+                await createTestWithQuestions(data);
+            }
+
+            setViewMode('list');
+            await loadExistingTests();
         } catch (error) {
-            console.error('Preview error:', error);
-            alert('Failed to preview questions');
+            console.error('Save error:', error);
+            alert('Failed to save test');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreateTest = async () => {
-        setLoading(true);
-        try {
-            await createTestWithSelection(config);
-            setViewMode('list');
-            await loadExistingTests();
-        } catch (error) {
-            console.error('Create error:', error);
-            alert('Failed to create test');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Get question details for selected IDs
+    const getQuestionById = (id: number) => availableQuestions.find(q => q.id === id);
 
     return (
         <div className="fade-in">
@@ -150,310 +215,331 @@ export default function TestBuilder() {
                         <h1 className="page-title">Test Builder</h1>
                         <p className="page-subtitle">Create and manage your practice tests.</p>
                     </div>
+                    {(viewMode === 'create' || viewMode === 'edit') && (
+                        <button className="btn btn-secondary" onClick={() => setViewMode('list')}>
+                            ← Back to Tests
+                        </button>
+                    )}
                 </div>
             </header>
 
             <div className="page-body">
-                {/* Two-column layout */}
-                <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', height: 'calc(100vh - 180px)' }}>
-
-                    {/* Left Sidebar: My Tests */}
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <div className="card-header" style={{ flexShrink: 0 }}>
-                            <h3 className="card-title">📚 My Tests</h3>
-                            <span className="tag info">{existingTests.length}</span>
-                        </div>
-                        <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-                            {existingTests.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)' }}>
-                                    <p>No tests yet</p>
-                                    <p style={{ fontSize: '12px' }}>Create your first test!</p>
-                                </div>
-                            ) : (
-                                existingTests.map(test => (
-                                    <div
-                                        key={test.id}
-                                        onClick={() => handleSelectTest(test)}
-                                        style={{
-                                            padding: '14px',
-                                            marginBottom: '10px',
-                                            borderRadius: '8px',
-                                            background: 'var(--bg-tertiary)',
-                                            border: selectedTest?.id === test.id ? '2px solid var(--color-primary)' : '1px solid var(--border-color)',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                    >
-                                        <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '6px' }}>{test.name}</div>
-                                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                            <span>📝 {test.question_count} Qs</span>
-                                            <span>⏱️ {test.duration_minutes} min</span>
+                {/* LIST MODE */}
+                {viewMode === 'list' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', height: 'calc(100vh - 180px)' }}>
+                        {/* Left Sidebar: My Tests */}
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <div className="card-header" style={{ flexShrink: 0 }}>
+                                <h3 className="card-title">📚 My Tests</h3>
+                                <span className="tag info">{existingTests.length}</span>
+                            </div>
+                            <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                                {existingTests.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)' }}>
+                                        <p>No tests yet</p>
+                                    </div>
+                                ) : (
+                                    existingTests.map(test => (
+                                        <div
+                                            key={test.id}
+                                            onClick={() => handleSelectTest(test)}
+                                            style={{
+                                                padding: '14px',
+                                                marginBottom: '10px',
+                                                borderRadius: '8px',
+                                                background: 'var(--bg-tertiary)',
+                                                border: selectedTest?.id === test.id ? '2px solid var(--color-primary)' : '1px solid var(--border-color)',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '6px' }}>{test.name}</div>
+                                            <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                <span>📝 {test.question_count} Qs</span>
+                                                <span>⏱️ {test.duration_minutes} min</span>
+                                            </div>
                                         </div>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                                            {new Date(test.created_at).toLocaleDateString()}
+                                    ))
+                                )}
+                            </div>
+                            <div style={{ padding: '12px', borderTop: '1px solid var(--border-color)' }}>
+                                <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleCreateNew}>
+                                    ➕ Create New Test
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Right: Test Details */}
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            {selectedTest ? (
+                                <>
+                                    <div className="card-header" style={{ flexShrink: 0 }}>
+                                        <div>
+                                            <h3 className="card-title">{selectedTest.name}</h3>
+                                            <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                                                <span>📝 <strong>{testQuestions.length}</strong> Questions</span>
+                                                <span>⏱️ <strong>{selectedTest.duration_minutes}</strong> minutes</span>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button className="btn btn-primary" onClick={() => navigate(`/practice?test=${selectedTest.id}`)}>
+                                                🎯 Start Practice
+                                            </button>
+                                            <button className="btn btn-secondary" onClick={() => handleEditTest(selectedTest)}>
+                                                ✏️ Edit
+                                            </button>
+                                            <button className="btn btn-danger" onClick={() => handleDeleteTest(selectedTest.id)}>
+                                                🗑️
+                                            </button>
                                         </div>
                                     </div>
-                                ))
+                                    <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
+                                        {loadingQuestions ? (
+                                            <div style={{ textAlign: 'center', padding: '48px' }}>Loading...</div>
+                                        ) : (
+                                            <table className="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style={{ width: '50px' }}>#</th>
+                                                        <th>Question</th>
+                                                        <th style={{ width: '140px' }}>Category</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {testQuestions.map((q, i) => (
+                                                        <tr key={q.id} onClick={() => navigate(`/review?q=${q.id}`)} style={{ cursor: 'pointer' }}>
+                                                            <td><span className="question-badge" style={{ fontSize: '12px' }}>{i + 1}</span></td>
+                                                            <td style={{ maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                {q.text}
+                                                            </td>
+                                                            <td>
+                                                                {q.category_name && (
+                                                                    <span className="tag" style={{ background: q.category_color || 'var(--color-primary)', color: 'white' }}>
+                                                                        {q.category_name}
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="card-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <h3>No Tests Yet</h3>
+                                        <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Create your first practice test!</p>
+                                        <button className="btn btn-primary btn-lg" onClick={handleCreateNew}>
+                                            ➕ Create New Test
+                                        </button>
+                                    </div>
+                                </div>
                             )}
                         </div>
-                        {/* Create New Button */}
-                        <div style={{ padding: '12px', borderTop: '1px solid var(--border-color)' }}>
-                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleCreateNew}>
-                                ➕ Create New Test
-                            </button>
-                        </div>
                     </div>
+                )}
 
-                    {/* Main Content Area */}
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
-                        {/* VIEW MODE: Show selected test details */}
-                        {viewMode === 'list' && selectedTest && (
-                            <>
-                                <div className="card-header" style={{ flexShrink: 0 }}>
-                                    <div>
-                                        <h3 className="card-title">{selectedTest.name}</h3>
-                                        <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                                            <span>📝 <strong>{testQuestions.length}</strong> Questions</span>
-                                            <span>⏱️ <strong>{selectedTest.duration_minutes}</strong> minutes</span>
-                                            <span>📅 {new Date(selectedTest.created_at).toLocaleDateString()}</span>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button className="btn btn-primary" onClick={() => navigate(`/practice?test=${selectedTest.id}`)}>
-                                            🎯 Start Practice
-                                        </button>
-                                        <button className="btn btn-danger" onClick={() => handleDeleteTest(selectedTest.id)}>
-                                            🗑️ Delete
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
-                                    {loadingQuestions ? (
-                                        <div style={{ textAlign: 'center', padding: '48px' }}>
-                                            <div className="spinner" />
-                                            <p>Loading questions...</p>
-                                        </div>
-                                    ) : (
-                                        <table className="table">
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ width: '50px' }}>#</th>
-                                                    <th>Question</th>
-                                                    <th style={{ width: '140px' }}>Category</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {testQuestions.map((q, i) => (
-                                                    <tr
-                                                        key={q.id}
-                                                        onClick={() => navigate(`/review?q=${q.id}`)}
-                                                        style={{ cursor: 'pointer' }}
-                                                    >
-                                                        <td><span className="question-badge" style={{ fontSize: '12px' }}>{i + 1}</span></td>
-                                                        <td style={{ maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                            {q.text}
-                                                        </td>
-                                                        <td>
-                                                            {q.category_name && (
-                                                                <span className="tag" style={{ background: q.category_color || 'var(--color-primary)', color: 'white' }}>
-                                                                    {q.category_name}
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )}
-                                </div>
-                            </>
-                        )}
-
-                        {/* VIEW MODE: No test selected */}
-                        {viewMode === 'list' && !selectedTest && existingTests.length === 0 && (
-                            <div className="card-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
-                                    <h3>No Tests Yet</h3>
-                                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Create your first practice test to get started!</p>
-                                    <button className="btn btn-primary btn-lg" onClick={handleCreateNew}>
-                                        ➕ Create New Test
-                                    </button>
-                                </div>
+                {/* CREATE/EDIT MODE */}
+                {(viewMode === 'create' || viewMode === 'edit') && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', height: 'calc(100vh - 180px)' }}>
+                        {/* Left: Question Browser */}
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <div className="card-header" style={{ flexShrink: 0 }}>
+                                <h3 className="card-title">📚 Available Questions</h3>
+                                <span className="tag info">{availableQuestions.length}</span>
                             </div>
-                        )}
 
-                        {/* CREATE MODE: Show create form */}
-                        {viewMode === 'create' && (
-                            <>
-                                <div className="card-header" style={{ flexShrink: 0 }}>
-                                    <h3 className="card-title">Create New Test</h3>
-                                    <button className="btn btn-ghost" onClick={() => setViewMode('list')}>✕ Cancel</button>
+                            {/* Filters */}
+                            <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Search questions..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    style={{ flex: 1, minWidth: '200px' }}
+                                />
+                                <select
+                                    className="form-input form-select"
+                                    value={filterCategoryId}
+                                    onChange={e => setFilterCategoryId(e.target.value ? Number(e.target.value) : '')}
+                                    style={{ width: '200px' }}
+                                >
+                                    <option value="">All Categories</option>
+                                    {categories.map(cat => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Question List */}
+                            <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th style={{ width: '40px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    onChange={e => {
+                                                        if (e.target.checked) {
+                                                            setCheckedIds(new Set(availableQuestions.map(q => q.id)));
+                                                        } else {
+                                                            setCheckedIds(new Set());
+                                                        }
+                                                    }}
+                                                    checked={checkedIds.size === availableQuestions.length && availableQuestions.length > 0}
+                                                />
+                                            </th>
+                                            <th style={{ width: '50px' }}>#</th>
+                                            <th>Question</th>
+                                            <th style={{ width: '150px' }}>Category</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {availableQuestions.map(q => (
+                                            <tr
+                                                key={q.id}
+                                                style={{
+                                                    background: selectedQuestionIds.includes(q.id) ? 'rgba(255, 153, 0, 0.1)' : undefined
+                                                }}
+                                            >
+                                                <td>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={checkedIds.has(q.id)}
+                                                        disabled={selectedQuestionIds.includes(q.id)}
+                                                        onChange={e => handleCheckQuestion(q.id, e.target.checked)}
+                                                    />
+                                                </td>
+                                                <td><span className="question-badge" style={{ fontSize: '12px' }}>{q.id}</span></td>
+                                                <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {selectedQuestionIds.includes(q.id) && <span style={{ color: 'var(--color-success)', marginRight: '6px' }}>✓</span>}
+                                                    {q.text}
+                                                </td>
+                                                <td>
+                                                    {q.category_name && (
+                                                        <span className="tag" style={{ fontSize: '11px', background: q.category_color || 'var(--bg-tertiary)' }}>
+                                                            {q.category_name}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Add Selected Button */}
+                            <div style={{ padding: '16px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                                    <strong>{checkedIds.size}</strong> selected
+                                </span>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleAddSelected}
+                                    disabled={checkedIds.size === 0}
+                                >
+                                    ➕ Add Selected ({checkedIds.size})
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Right: Test Configuration */}
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <div className="card-header" style={{ flexShrink: 0 }}>
+                                <h3 className="card-title">⚙️ Test Configuration</h3>
+                                <span className="tag warning">{viewMode === 'edit' ? 'Edit Mode' : 'New Test'}</span>
+                            </div>
+
+                            <div className="card-body" style={{ flex: 1, overflowY: 'auto' }}>
+                                <div className="form-group" style={{ marginBottom: '20px' }}>
+                                    <label className="form-label">Test Name *</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Enter test name..."
+                                        value={testName}
+                                        onChange={e => setTestName(e.target.value)}
+                                    />
                                 </div>
-                                <div className="card-body" style={{ flex: 1, overflowY: 'auto' }}>
-                                    <div style={{ maxWidth: '600px' }}>
-                                        <div className="form-group">
-                                            <label className="form-label">Test Name *</label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                placeholder="e.g., SAA Practice Test 1"
-                                                value={config.name}
-                                                onChange={e => setConfig(prev => ({ ...prev, name: e.target.value }))}
-                                            />
-                                        </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                            <div className="form-group">
-                                                <label className="form-label">Duration (minutes)</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-input"
-                                                    min={5}
-                                                    max={180}
-                                                    value={config.duration_minutes}
-                                                    onChange={e => setConfig(prev => ({ ...prev, duration_minutes: parseInt(e.target.value) || 60 }))}
-                                                />
-                                            </div>
-                                            <div className="form-group">
-                                                <label className="form-label">Number of Questions</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-input"
-                                                    min={1}
-                                                    max={100}
-                                                    value={config.count}
-                                                    onChange={e => setConfig(prev => ({ ...prev, count: parseInt(e.target.value) || 10 }))}
-                                                />
-                                            </div>
-                                        </div>
+                                <div className="form-group" style={{ marginBottom: '24px' }}>
+                                    <label className="form-label">Duration (minutes)</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        min={1}
+                                        max={180}
+                                        value={duration}
+                                        onChange={e => setDuration(parseInt(e.target.value) || 60)}
+                                    />
+                                </div>
 
-                                        <div className="form-group">
-                                            <label className="form-label">Selection Mode</label>
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                                                {[
-                                                    { value: 'random', label: '🎲 Random' },
-                                                    { value: 'new', label: '✨ New Only' },
-                                                    { value: 'wrong', label: '❌ Wrong Answers' },
-                                                    { value: 'flagged', label: '🚩 Flagged' }
-                                                ].map(mode => (
+                                <div style={{ marginBottom: '16px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '14px' }}>Test Questions</span>
+                                        <span className="tag success">{selectedQuestionIds.length}</span>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                                        {selectedQuestionIds.length === 0 ? (
+                                            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                                No questions selected yet.<br />
+                                                Select questions from the left panel.
+                                            </div>
+                                        ) : (
+                                            selectedQuestionIds.map((qId, index) => {
+                                                const q = getQuestionById(qId);
+                                                return (
                                                     <div
-                                                        key={mode.value}
-                                                        onClick={() => setConfig(prev => ({ ...prev, selection_mode: mode.value as any }))}
+                                                        key={qId}
                                                         style={{
-                                                            padding: '12px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '12px',
+                                                            padding: '10px 12px',
+                                                            background: 'var(--bg-tertiary)',
                                                             borderRadius: '8px',
-                                                            border: config.selection_mode === mode.value ? '2px solid var(--color-primary)' : '1px solid var(--border-color)',
-                                                            background: config.selection_mode === mode.value ? 'rgba(255, 153, 0, 0.1)' : 'var(--bg-tertiary)',
-                                                            cursor: 'pointer',
-                                                            textAlign: 'center',
-                                                            fontWeight: config.selection_mode === mode.value ? 600 : 400
+                                                            border: '1px solid var(--border-color)'
                                                         }}
                                                     >
-                                                        {mode.label}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {categories.length > 0 && (
-                                            <div className="form-group">
-                                                <label className="form-label">Categories (optional)</label>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                    {categories.map(cat => (
-                                                        <label
-                                                            key={cat.id}
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '6px',
-                                                                padding: '8px 14px',
-                                                                borderRadius: '20px',
-                                                                background: config.category_ids.includes(cat.id) ? cat.color || 'var(--color-primary)' : 'var(--bg-tertiary)',
-                                                                color: config.category_ids.includes(cat.id) ? 'white' : 'inherit',
-                                                                cursor: 'pointer',
-                                                                fontSize: '13px'
-                                                            }}
+                                                        <span className="question-badge" style={{ fontSize: '11px' }}>{index + 1}</span>
+                                                        <span style={{ flex: 1, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                            {q?.text || `Question #${qId}`}
+                                                        </span>
+                                                        <button
+                                                            className="btn btn-ghost btn-icon"
+                                                            onClick={() => handleRemoveQuestion(qId)}
+                                                            style={{ color: 'var(--color-danger)', padding: '4px' }}
                                                         >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={config.category_ids.includes(cat.id)}
-                                                                onChange={e => {
-                                                                    setConfig(prev => ({
-                                                                        ...prev,
-                                                                        category_ids: e.target.checked
-                                                                            ? [...prev.category_ids, cat.id]
-                                                                            : prev.category_ids.filter(id => id !== cat.id)
-                                                                    }));
-                                                                }}
-                                                                style={{ display: 'none' }}
-                                                            />
-                                                            {cat.name}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })
                                         )}
+                                    </div>
+                                </div>
+                            </div>
 
-                                        <button
-                                            className="btn btn-primary btn-lg"
-                                            style={{ width: '100%', marginTop: '16px' }}
-                                            onClick={handlePreview}
-                                            disabled={loading || !config.name.trim()}
-                                        >
-                                            {loading ? 'Loading...' : 'Preview Questions →'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                        {/* PREVIEW MODE: Show preview questions */}
-                        {viewMode === 'preview' && preview && (
-                            <>
-                                <div className="card-header" style={{ flexShrink: 0 }}>
-                                    <div>
-                                        <h3 className="card-title">Preview: {config.name}</h3>
-                                        <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
-                                            {preview.count} questions selected
-                                        </p>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button className="btn btn-ghost" onClick={() => setViewMode('create')}>← Back</button>
-                                        <button className="btn btn-success" onClick={handleCreateTest} disabled={loading}>
-                                            {loading ? 'Creating...' : '✓ Create Test'}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
-                                    <table className="table">
-                                        <thead>
-                                            <tr>
-                                                <th style={{ width: '50px' }}>#</th>
-                                                <th>Question</th>
-                                                <th style={{ width: '140px' }}>Category</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {preview.questions.map((q, i) => (
-                                                <tr key={q.id}>
-                                                    <td><span className="question-badge" style={{ fontSize: '12px' }}>{i + 1}</span></td>
-                                                    <td style={{ maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                        {q.text}
-                                                    </td>
-                                                    <td>
-                                                        {q.category_name && <span className="tag info">{q.category_name}</span>}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </>
-                        )}
+                            {/* Action Buttons */}
+                            <div style={{ padding: '16px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '12px' }}>
+                                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setViewMode('list')}>
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ flex: 2 }}
+                                    onClick={handleSave}
+                                    disabled={loading || !testName.trim() || selectedQuestionIds.length === 0}
+                                >
+                                    {loading ? 'Saving...' : viewMode === 'edit' ? '💾 Save Changes' : '✓ Create Test'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );

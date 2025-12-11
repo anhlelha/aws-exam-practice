@@ -282,6 +282,76 @@ router.get('/:id/questions', (req, res) => {
     }
 });
 
+// PUT /api/tests/:id - Update a test
+router.put('/:id', (req, res) => {
+    try {
+        const db = getDb();
+        const testId = req.params.id;
+        const { name, duration_minutes, question_ids } = req.body;
+
+        // Check if test exists
+        const test = db.prepare(`SELECT * FROM tests WHERE id = ?`).get(testId);
+        if (!test) {
+            return res.status(404).json({ error: 'Test not found' });
+        }
+
+        // Update test metadata
+        db.prepare(`UPDATE tests SET name = ?, duration_minutes = ? WHERE id = ?`)
+            .run(name || test.name, duration_minutes || test.duration_minutes, testId);
+
+        // Replace test_questions if provided
+        if (question_ids && Array.isArray(question_ids)) {
+            // Delete existing questions
+            db.prepare(`DELETE FROM test_questions WHERE test_id = ?`).run(testId);
+
+            // Add new questions
+            const insert = db.prepare(`INSERT INTO test_questions (test_id, question_id, order_index) VALUES (?, ?, ?)`);
+            question_ids.forEach((qId, index) => {
+                insert.run(testId, qId, index);
+            });
+        }
+
+        res.json({ success: true, message: 'Test updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// PUT /api/tests/:id - Update a test
+router.put('/:id', (req, res) => {
+    try {
+        const db = getDb();
+        const testId = req.params.id;
+        const { name, duration_minutes, question_ids } = req.body;
+
+        // Check if test exists
+        const test = db.prepare(`SELECT * FROM tests WHERE id = ?`).get(testId);
+        if (!test) {
+            return res.status(404).json({ error: 'Test not found' });
+        }
+
+        // Update test metadata
+        db.prepare(`UPDATE tests SET name = ?, duration_minutes = ? WHERE id = ?`)
+            .run(name || test.name, duration_minutes || test.duration_minutes, testId);
+
+        // Replace test_questions if provided
+        if (question_ids && Array.isArray(question_ids)) {
+            // Delete existing questions
+            db.prepare(`DELETE FROM test_questions WHERE test_id = ?`).run(testId);
+
+            // Add new questions
+            const insert = db.prepare(`INSERT INTO test_questions (test_id, question_id, order_index) VALUES (?, ?, ?)`);
+            question_ids.forEach((qId, index) => {
+                insert.run(testId, qId, index);
+            });
+        }
+
+        res.json({ success: true, message: 'Test updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // DELETE /api/tests/:id - Delete a test
 router.delete('/:id', (req, res) => {
     try {
