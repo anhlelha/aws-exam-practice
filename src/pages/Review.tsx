@@ -398,12 +398,14 @@ export default function Review() {
                                                     <span
                                                         className="tag"
                                                         style={{
-                                                            background: q.category_color || 'var(--color-primary)',
-                                                            color: 'white',
-                                                            fontSize: '11px'
+                                                            background: 'transparent',
+                                                            border: `2px solid ${q.category_color || 'var(--color-primary)'}`,
+                                                            color: q.category_color || 'var(--color-primary)',
+                                                            fontSize: '11px',
+                                                            padding: '3px 10px'
                                                         }}
                                                     >
-                                                        {q.category_name}
+                                                        {q.category_name.replace('Design ', '').replace(' Architectures', '')}
                                                     </span>
                                                 ) : (
                                                     <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '13px' }}>
@@ -571,11 +573,13 @@ export default function Review() {
                                                 <span
                                                     className="tag"
                                                     style={{
-                                                        background: selectedQuestion.category_color || 'var(--color-primary)',
-                                                        color: 'white'
+                                                        background: 'transparent',
+                                                        border: `2px solid ${selectedQuestion.category_color || 'var(--color-primary)'}`,
+                                                        color: selectedQuestion.category_color || 'var(--color-primary)',
+                                                        padding: '4px 12px'
                                                     }}
                                                 >
-                                                    {selectedQuestion.category_name}
+                                                    {selectedQuestion.category_name.replace('Design ', '').replace(' Architectures', '')}
                                                 </span>
                                             ) : (
                                                 <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
