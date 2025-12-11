@@ -6,13 +6,6 @@ description: Create a detailed sprint plan with independent agent tasks
 
 When user asks to plan a feature/sprint, follow this structure:
 
-### Prerequisites: Context Check
-
-Before planning, read these files:
-- `API_REFERENCE.md` - Current API structure
-- `DEVELOPMENT_GOTCHAS.md` - Known issues to avoid
-- Recent sprint files for patterns
-
 ### Step 1: Analyze Requirements
 
 Read and understand the feature requirements from user input or referenced files.
@@ -56,7 +49,7 @@ SPRINT{N}_AGENT3_TESTING.md    - E2E testing (runs LAST)
 SPRINT{N}_AGENT4_{OTHER}.md    - Optional: Database, DevOps, etc.
 ```
 
-**Agent Task File Format:**
+### Step 5: Agent Task File Format
 
 Each agent file should contain:
 
@@ -79,13 +72,20 @@ Each agent file should contain:
 - What to do when complete (mark file as done, notify user, etc.)
 ```
 
-### Step 5: Testing Agent (ALWAYS LAST)
+### Step 6: Testing Agent (ALWAYS LAST)
 
 Agent 3 (Testing) should:
 1. Wait for all other agents to complete
 2. Run E2E tests on ALL features from the sprint
 3. Document test results in a test report file
 4. Flag any issues found for other agents to fix
+
+### Step 7: Context Files
+
+Before planning, read these files:
+- `API_REFERENCE.md` - Current API structure
+- `DEVELOPMENT_GOTCHAS.md` - Known issues to avoid
+- Recent sprint files for patterns
 
 ### Example Output Structure
 
