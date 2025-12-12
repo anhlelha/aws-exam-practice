@@ -10,7 +10,7 @@ Complete guide to deploy the AWS Exam Practice application on a fresh EC2 instan
 |------|-------------|
 | EC2 Instance | Amazon Linux 2023 or Ubuntu |
 | Public IP | e.g., `3.235.94.226` |
-| SSH Key | `aws_exam.pem` in local directory |
+| SSH Key | `../aws_exam.pem` (relative to aws-exam-app/) |
 | Security Group | Ports 22 (SSH), 80 (HTTP), 443 (HTTPS) open |
 
 ---
@@ -19,7 +19,7 @@ Complete guide to deploy the AWS Exam Practice application on a fresh EC2 instan
 
 ```bash
 # From local machine, run the deploy script on EC2
-ssh -i aws_exam.pem ec2-user@<PUBLIC_IP> 'bash -s' < scripts/deploy-ec2.sh
+ssh -i ../aws_exam.pem ec2-user@<PUBLIC_IP> 'bash -s' < scripts/deploy-ec2.sh
 ```
 
 ---
@@ -29,7 +29,7 @@ ssh -i aws_exam.pem ec2-user@<PUBLIC_IP> 'bash -s' < scripts/deploy-ec2.sh
 ### Step 1: SSH into EC2
 
 ```bash
-ssh -i aws_exam.pem ec2-user@<PUBLIC_IP>
+ssh -i ../aws_exam.pem ec2-user@<PUBLIC_IP>
 ```
 
 ### Step 2: Install Node.js 20.x + Build Tools
@@ -153,7 +153,7 @@ ssh -i ../aws_exam.pem ec2-user@<PUBLIC_IP> "pm2 restart aws-exam-api"
 
 ```bash
 # SSH into EC2
-ssh -i aws_exam.pem ec2-user@<PUBLIC_IP>
+ssh -i ../aws_exam.pem ec2-user@<PUBLIC_IP>
 
 # Pull latest code and rebuild
 cd ~/aws-exam-practice

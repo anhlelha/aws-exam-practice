@@ -3,7 +3,7 @@
 
 set -e
 
-EC2_HOST="ec2-user@3.235.94.226"
+EC2_HOST="ec2-user@3.236.11.104"
 SSH_KEY="../aws_exam.pem"
 REMOTE_DIR="/home/ec2-user/aws-exam-practice"
 
